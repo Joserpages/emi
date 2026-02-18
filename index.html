@@ -374,42 +374,6 @@
     .piece{position:absolute; width:10px; height:16px; opacity:.95; border-radius:3px; animation: fall linear forwards}
     @keyframes fall{from{transform: translateY(-10vh) rotate(0deg)} to{transform: translateY(110vh) rotate(760deg)}}
 
-    .toast{
-      position:fixed;
-      left:50%;
-      bottom:18px;
-      transform: translateX(-50%);
-      width:min(520px, calc(100% - 24px));
-      z-index:11;
-      display:none;
-    }
-    .toast.show{display:block; animation: toastIn .22s var(--ease) both}
-    @keyframes toastIn{
-      from{opacity:0; transform: translateX(-50%) translateY(10px)}
-      to{opacity:1; transform: translateX(-50%) translateY(0)}
-    }
-    .toastCard{
-      border-radius:22px;
-      border:1px solid #ffd6ec;
-      background:#ffffff;
-      box-shadow: 0 26px 90px rgba(255, 105, 180, .18);
-      padding:12px;
-      overflow:hidden;
-    }
-    .toastTop{
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-      padding-bottom:10px;
-      border-bottom:1px solid #ffe1f1;
-    }
-    .toastTitle{font-weight:950; letter-spacing:-.2px;}
-    .toastBody{
-      padding-top:10px;
-      color:#6f5160;
-      line-height:1.6;
-      font-size:14px;
-      white-space:pre-wrap;
-    }
-
     .footer{
       padding:12px 16px 16px;
       border-top:1px solid #ffe1f1;
@@ -421,6 +385,7 @@
 
     #audio { display:none; }
 
+    /* ===== Presenter ===== */
     .presenter{
       position:fixed; inset:0;
       background:
@@ -483,6 +448,50 @@
       white-space:pre-wrap;
       min-height: 160px;
     }
+
+    /* PREGUNTA GRANDE */
+    .proposalBox{
+      margin-top:14px;
+      border-radius:22px;
+      border:1px solid #ffe1f1;
+      background: #ffffff;
+      box-shadow: 0 14px 40px rgba(255,105,180,.10);
+      padding:14px;
+      display:none;
+      animation: in .28s var(--ease) both;
+    }
+    .proposalBox.show{display:block}
+    .proposalQ{
+      margin:0;
+      text-align:center;
+      font-weight:1000;
+      letter-spacing:-.6px;
+      color:#3a2a33;
+      font-size: clamp(28px, 6.2vw, 52px);
+      line-height:1.05;
+    }
+    .proposalSub{
+      margin:10px 0 0;
+      text-align:center;
+      color:#8f6f7f;
+      font-size:14px;
+      line-height:1.6;
+      white-space:pre-wrap;
+    }
+    .proposalBtns{
+      display:flex;
+      gap:10px;
+      justify-content:center;
+      margin-top:12px;
+      flex-wrap:wrap;
+    }
+    .proposalBtns button{
+      padding:14px 18px;
+      border-radius:18px;
+      font-size:15px;
+      min-width:140px;
+    }
+
     .pControls{
       display:flex; justify-content:flex-end; gap:10px; flex-wrap:wrap; margin-top:12px;
     }
@@ -544,6 +553,7 @@
       .catchBox{height:240px}
       .pCard{padding:14px}
       .pBody{min-height: 140px}
+      .proposalBtns button{min-width:132px}
     }
   </style>
 </head>
@@ -576,7 +586,6 @@
             <div class="pct" id="pct">0%</div>
           </div>
 
-          <!-- STEPS (mantengo lo mismo, ya profesional) -->
           <div class="step show" id="s1">
             <h2 style="margin-top:14px">🧩</h2>
             <div class="pWrap">
@@ -728,9 +737,20 @@
         </div>
 
         <h2 class="pTitle"><span class="spark" id="pHeadline">—</span></h2>
+
         <div class="pBody" id="pBody"></div>
 
-        <div class="pControls">
+        <!-- PREGUNTA + BOTONES (EN LA MISMA PRESENTACIÓN) -->
+        <div class="proposalBox" id="proposalBox">
+          <p class="proposalQ" id="proposalQ">—</p>
+          <p class="proposalSub" id="proposalSub">—</p>
+          <div class="proposalBtns">
+            <button class="ghost" id="proposalNo" type="button">No</button>
+            <button class="primary" id="proposalYes" type="button">Sí</button>
+          </div>
+        </div>
+
+        <div class="pControls" id="pControls">
           <button class="ghost" id="pPrev" type="button">◀</button>
           <button class="primary" id="pNext" type="button">▶</button>
           <button class="danger" id="pExit" type="button">Salir</button>
@@ -738,706 +758,732 @@
       </div>
     </div>
   </section>
+<script>
+  const NOMBRE_DE_ELLA = "mi Emi Hermosa";
+  const TU_NOMBRE      = "JOSE";
+  const FECHA_CONOCIERON = "2025-07-30";
+  const FOTO_PUZZLE = "foto.jpg";
+  const PIN_REVELAR = "270607";
 
-  <!-- Toast proposal -->
-  <div class="toast" id="toast">
-    <div class="toastCard">
-      <div class="toastTop">
-        <div class="toastTitle" id="toastTitle">💗</div>
-        <button class="ghost tinyBtn" id="toastClose" type="button">✕</button>
-      </div>
-      <div class="toastBody" id="toastBody">—</div>
-      <div class="btns" style="margin-top:12px; justify-content:flex-end">
-        <button class="ghost" id="btnNo" type="button">No</button>
-        <button class="primary" id="btnYes" type="button">Sí</button>
-      </div>
-    </div>
-  </div>
+  const $ = (id)=>document.getElementById(id);
 
-  <!-- Result -->
-  <div class="modal" id="resultModal">
-    <div class="modalCard">
-      <h3 id="resTitle">—</h3>
-      <p id="resBody">—</p>
-      <div class="btns" style="justify-content:flex-end">
-        <button class="primary" id="closeRes" type="button">Cerrar</button>
-      </div>
-    </div>
-  </div>
+  $("toName").textContent = NOMBRE_DE_ELLA + " ✨";
+  $("toName2").textContent = NOMBRE_DE_ELLA;
+  $("fromName").textContent = TU_NOMBRE;
+  $("fromName2").textContent = TU_NOMBRE;
 
-  <script>
-    const NOMBRE_DE_ELLA = "mi Emi Hermosa";
-    const TU_NOMBRE      = "JOSE";
-    const FECHA_CONOCIERON = "2025-07-30";
-    const FOTO_PUZZLE = "foto.jpg";
-    const PIN_REVELAR = "270607";
+  $("helloName").textContent = NOMBRE_DE_ELLA;
+  $("badgeText").textContent = "💗";
+  document.title = "💗";
 
-    const $ = (id)=>document.getElementById(id);
+  $("sideText").textContent  = " ";
+  $("smallNote").textContent = " ";
+  $("thanksText").textContent = " ";
 
-    $("toName").textContent = NOMBRE_DE_ELLA + " ✨";
-    $("toName2").textContent = NOMBRE_DE_ELLA;
-    $("fromName").textContent = TU_NOMBRE;
-    $("fromName2").textContent = TU_NOMBRE;
+  const frases = [
+    "Me gustás de una forma que no sé explicar… pero se siente.",
+    "Sos de esas personas que cambian el día con solo estar.",
+    "Me gusta cuando te reís. Me gusta cuando estás cerca.",
+    "Si te pudiera guardar en un lugar seguro… sería en mi pecho.",
+    "Con vos, todo se siente más bonito."
+  ];
+  $("introText").textContent = frases[Math.floor(Math.random()*frases.length)];
+  $("thanksText").textContent = frases[Math.floor(Math.random()*frases.length)];
 
-    $("helloName").textContent = NOMBRE_DE_ELLA;
-    $("badgeText").textContent = "💗";
-    document.title = "💗";
-
-    $("sideText").textContent  = " ";
-    $("smallNote").textContent = " ";
-    $("thanksText").textContent = " ";
-
-    const frases = [
-      "Me gustás de una forma que no sé explicar… pero se siente.",
-      "Sos de esas personas que cambian el día con solo estar.",
-      "Me gusta cuando te reís. Me gusta cuando estás cerca.",
-      "Si te pudiera guardar en un lugar seguro… sería en mi pecho.",
-      "Con vos, todo se siente más bonito."
-    ];
-    $("introText").textContent = frases[Math.floor(Math.random()*frases.length)];
-    $("thanksText").textContent = frases[Math.floor(Math.random()*frases.length)];
-
-    const previewImg = $("previewImg");
-    previewImg.src = FOTO_PUZZLE;
+  const previewImg = $("previewImg");
+  previewImg.src = FOTO_PUZZLE;
+  $("togglePreview").textContent = "—";
+  $("togglePreview").addEventListener("click", ()=>{
+    const body = $("previewBody");
+    const hidden = body.style.display === "none";
+    body.style.display = hidden ? "block" : "none";
     $("togglePreview").textContent = "—";
-    $("togglePreview").addEventListener("click", ()=>{
-      const body = $("previewBody");
-      const hidden = body.style.display === "none";
-      body.style.display = hidden ? "block" : "none";
-      $("togglePreview").textContent = "—";
-    });
+  });
 
-    const ambient = $("ambient");
-    const parts = ["•","·","✦","✧","⋆","⟡","♡"];
-    function spawn(){
-      const el = document.createElement("i");
-      el.textContent = parts[Math.floor(Math.random()*parts.length)];
-      el.style.left = (Math.random()*100) + "vw";
-      el.style.fontSize = (12 + Math.random()*18) + "px";
-      el.style.animationDuration = (7 + Math.random()*10) + "s";
-      el.style.animationDelay = (Math.random()*1.5) + "s";
-      ambient.appendChild(el);
-      setTimeout(()=>el.remove(), 17000);
+  const ambient = $("ambient");
+  const parts = ["•","·","✦","✧","⋆","⟡","♡"];
+  function spawn(){
+    const el = document.createElement("i");
+    el.textContent = parts[Math.floor(Math.random()*parts.length)];
+    el.style.left = (Math.random()*100) + "vw";
+    el.style.fontSize = (12 + Math.random()*18) + "px";
+    el.style.animationDuration = (7 + Math.random()*10) + "s";
+    el.style.animationDelay = (Math.random()*1.5) + "s";
+    ambient.appendChild(el);
+    setTimeout(()=>el.remove(), 17000);
+  }
+  for(let i=0;i<18;i++) spawn();
+  setInterval(spawn, 800);
+
+  function daysBetweenISO(iso, now){
+    const ms = 24*60*60*1000;
+    const d0 = new Date(iso + "T00:00:00");
+    const d1 = new Date(now);
+    return Math.max(0, Math.floor((d1 - d0) / ms));
+  }
+  function approxMonthsFromDays(days){
+    return Math.round(days / 30.44);
+  }
+  const days = daysBetweenISO(FECHA_CONOCIERON, new Date());
+  const approxMonths = approxMonthsFromDays(days);
+  $("since").textContent  = `${days.toLocaleString("es-GT")} días`;
+  $("months2").textContent= `≈ ${approxMonths} meses`;
+
+  const steps = ["s1","s2","s3","s4","s5"];
+  function show(stepId){
+    steps.forEach(s => $(s).classList.remove("show"));
+    $(stepId).classList.add("show");
+    const idx = steps.indexOf(stepId);
+    const p = Math.round((idx/(steps.length-1))*100);
+    $("fill").style.width = p + "%";
+    $("pct").textContent = p + "%";
+    $("status").textContent = " ";
+  }
+  show("s1");
+
+  $("restart").addEventListener("click", ()=> location.reload());
+  $("jump1").addEventListener("click", ()=> show("s1"));
+  $("jump2").addEventListener("click", ()=> show("s2"));
+  $("jump3").addEventListener("click", ()=> show("s3"));
+  $("jump4").addEventListener("click", ()=> show("s4"));
+
+  /* ===== PUZZLE ===== */
+  const puzzleEl = $("puzzle");
+  const size = 4;
+  let order = [];
+  let selected = null;
+  let moves = 0;
+
+  function isSolved(){
+    for(let i=0;i<order.length;i++){
+      if(order[i] !== i) return false;
     }
-    for(let i=0;i<18;i++) spawn();
-    setInterval(spawn, 800);
+    return true;
+  }
 
-    function daysBetweenISO(iso, now){
-      const ms = 24*60*60*1000;
-      const d0 = new Date(iso + "T00:00:00");
-      const d1 = new Date(now);
-      return Math.max(0, Math.floor((d1 - d0) / ms));
-    }
-    function approxMonthsFromDays(days){
-      return Math.round(days / 30.44);
-    }
-    const days = daysBetweenISO(FECHA_CONOCIERON, new Date());
-    const approxMonths = approxMonthsFromDays(days);
-    $("since").textContent  = `${days.toLocaleString("es-GT")} días`;
-    $("months2").textContent= `≈ ${approxMonths} meses`;
+  function renderPuzzle(){
+    puzzleEl.innerHTML = "";
+    const W = puzzleEl.clientWidth;
+    const H = puzzleEl.clientHeight;
+    const pw = W / size;
+    const ph = H / size;
 
-    const steps = ["s1","s2","s3","s4","s5"];
-    function show(stepId){
-      steps.forEach(s => $(s).classList.remove("show"));
-      $(stepId).classList.add("show");
-      const idx = steps.indexOf(stepId);
-      const p = Math.round((idx/(steps.length-1))*100);
-      $("fill").style.width = p + "%";
-      $("pct").textContent = p + "%";
-      $("status").textContent = " ";
-    }
-    show("s1");
+    for(let pos=0; pos<size*size; pos++){
+      const pieceIndex = order[pos];
+      const r = Math.floor(pos / size);
+      const c = pos % size;
 
-    $("restart").addEventListener("click", ()=> location.reload());
-    $("jump1").addEventListener("click", ()=> show("s1"));
-    $("jump2").addEventListener("click", ()=> show("s2"));
-    $("jump3").addEventListener("click", ()=> show("s3"));
-    $("jump4").addEventListener("click", ()=> show("s4"));
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "pieceBtn";
+      btn.style.width  = pw + "px";
+      btn.style.height = ph + "px";
+      btn.style.left = (c*pw) + "px";
+      btn.style.top  = (r*ph) + "px";
 
-    /* ===== PUZZLE ===== */
-    const puzzleEl = $("puzzle");
-    const size = 4;
-    let order = [];
-    let selected = null;
-    let moves = 0;
+      const srcR = Math.floor(pieceIndex / size);
+      const srcC = pieceIndex % size;
 
-    function isSolved(){
-      for(let i=0;i<order.length;i++){
-        if(order[i] !== i) return false;
+      btn.style.backgroundImage = `url('${FOTO_PUZZLE}')`;
+      btn.style.backgroundSize  = `${size*100}% ${size*100}%`;
+      btn.style.backgroundPosition = `${(srcC/(size-1))*100}% ${(srcR/(size-1))*100}%`;
+
+      if(selected === pos){
+        btn.style.outline = "3px solid rgba(255,77,166,.55)";
+        btn.style.boxShadow = "0 16px 34px rgba(255,105,180,.24)";
       }
-      return true;
-    }
 
-    function renderPuzzle(){
-      puzzleEl.innerHTML = "";
-      const W = puzzleEl.clientWidth;
-      const H = puzzleEl.clientHeight;
-      const pw = W / size;
-      const ph = H / size;
+      btn.addEventListener("click", ()=>{
+        if(selected === null){ selected = pos; renderPuzzle(); return; }
+        if(selected === pos){ selected = null; renderPuzzle(); return; }
 
-      for(let pos=0; pos<size*size; pos++){
-        const pieceIndex = order[pos];
-        const r = Math.floor(pos / size);
-        const c = pos % size;
+        const tmp = order[selected];
+        order[selected] = order[pos];
+        order[pos] = tmp;
+        selected = null;
+        moves += 1;
+        $("moves").textContent = moves;
 
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "pieceBtn";
-        btn.style.width  = pw + "px";
-        btn.style.height = ph + "px";
-        btn.style.left = (c*pw) + "px";
-        btn.style.top  = (r*ph) + "px";
-
-        const srcR = Math.floor(pieceIndex / size);
-        const srcC = pieceIndex % size;
-
-        btn.style.backgroundImage = `url('${FOTO_PUZZLE}')`;
-        btn.style.backgroundSize  = `${size*100}% ${size*100}%`;
-        btn.style.backgroundPosition = `${(srcC/(size-1))*100}% ${(srcR/(size-1))*100}%`;
-
-        if(selected === pos){
-          btn.style.outline = "3px solid rgba(255,77,166,.55)";
-          btn.style.boxShadow = "0 16px 34px rgba(255,105,180,.24)";
+        if(isSolved()){
+          $("pState").textContent = "✓";
+          $("go2").disabled = false;
+          popConfetti();
+        }else{
+          $("pState").textContent = " ";
         }
-
-        btn.addEventListener("click", ()=>{
-          if(selected === null){ selected = pos; renderPuzzle(); return; }
-          if(selected === pos){ selected = null; renderPuzzle(); return; }
-
-          const tmp = order[selected];
-          order[selected] = order[pos];
-          order[pos] = tmp;
-          selected = null;
-          moves += 1;
-          $("moves").textContent = moves;
-
-          if(isSolved()){
-            $("pState").textContent = "✓";
-            $("go2").disabled = false;
-            popConfetti();
-          }else{
-            $("pState").textContent = " ";
-          }
-          renderPuzzle();
-        });
-
-        puzzleEl.appendChild(btn);
-      }
-    }
-
-    function shuffle(){
-      order = Array.from({length:size*size}, (_,i)=>i);
-      for(let i=order.length-1;i>0;i--){
-        const j = Math.floor(Math.random()*(i+1));
-        [order[i],order[j]] = [order[j],order[i]];
-      }
-      if(isSolved()){ [order[0],order[1]] = [order[1],order[0]]; }
-      selected = null;
-      moves = 0;
-      $("moves").textContent = moves;
-      $("pState").textContent = " ";
-      $("go2").disabled = true;
-      renderPuzzle();
-    }
-
-    $("shuffle").addEventListener("click", shuffle);
-
-    (function loadPuzzleImage(){
-      const img = new Image();
-      img.onload = ()=> shuffle();
-      img.onerror = ()=>{
-        $("pWarn").style.display = "block";
-        $("pWarn").textContent = " ";
-        order = Array.from({length:size*size}, (_,i)=>i);
         renderPuzzle();
-      };
-      img.src = FOTO_PUZZLE;
-    })();
+      });
 
-    $("go2").addEventListener("click", ()=> show("s2"));
-    $("back1").addEventListener("click", ()=> show("s1"));
-
-    /* ===== MEMORY ===== */
-    const emojis = ["💗","💗","✨","✨","🌙","🌙","🍓","🍓","🧸","🧸","🌹","🌹"];
-    let mDeck = [];
-    let mFirst = null;
-    let mLock = false;
-    let mMatched = 0;
-    let mTries = 0;
-
-    $("mTotal").textContent = (emojis.length/2).toString();
-
-    function shuffleArr(a){
-      const b = a.slice();
-      for(let i=b.length-1;i>0;i--){
-        const j = Math.floor(Math.random()*(i+1));
-        [b[i],b[j]] = [b[j],b[i]];
-      }
-      return b;
+      puzzleEl.appendChild(btn);
     }
+  }
 
-    function renderMemory(){
-      const wrap = $("memory");
-      wrap.innerHTML = "";
-      mDeck.forEach((card, idx)=>{
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "cardBtn";
-        btn.textContent = card.revealed || card.matched ? card.value : "♡";
-        if(card.revealed) btn.classList.add("revealed");
-        if(card.matched) btn.classList.add("matched");
+  function shuffle(){
+    order = Array.from({length:size*size}, (_,i)=>i);
+    for(let i=order.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [order[i],order[j]] = [order[j],order[i]];
+    }
+    if(isSolved()){ [order[0],order[1]] = [order[1],order[0]]; }
+    selected = null;
+    moves = 0;
+    $("moves").textContent = moves;
+    $("pState").textContent = " ";
+    $("go2").disabled = true;
+    renderPuzzle();
+  }
 
-        btn.addEventListener("click", ()=>{
-          if(mLock) return;
-          if(card.matched || card.revealed) return;
+  $("shuffle").addEventListener("click", shuffle);
 
-          card.revealed = true;
+  (function loadPuzzleImage(){
+    const img = new Image();
+    img.onload = ()=> shuffle();
+    img.onerror = ()=>{
+      $("pWarn").style.display = "block";
+      $("pWarn").textContent = " ";
+      order = Array.from({length:size*size}, (_,i)=>i);
+      renderPuzzle();
+    };
+    img.src = FOTO_PUZZLE;
+  })();
+
+  $("go2").addEventListener("click", ()=> show("s2"));
+  $("back1").addEventListener("click", ()=> show("s1"));
+
+  /* ===== MEMORY ===== */
+  const emojis = ["💗","💗","✨","✨","🌙","🌙","🍓","🍓","🧸","🧸","🌹","🌹"];
+  let mDeck = [];
+  let mFirst = null;
+  let mLock = false;
+  let mMatched = 0;
+  let mTries = 0;
+
+  $("mTotal").textContent = (emojis.length/2).toString();
+
+  function shuffleArr(a){
+    const b = a.slice();
+    for(let i=b.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [b[i],b[j]] = [b[j],b[i]];
+    }
+    return b;
+  }
+
+  function renderMemory(){
+    const wrap = $("memory");
+    wrap.innerHTML = "";
+    mDeck.forEach((card, idx)=>{
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "cardBtn";
+      btn.textContent = card.revealed || card.matched ? card.value : "♡";
+      if(card.revealed) btn.classList.add("revealed");
+      if(card.matched) btn.classList.add("matched");
+
+      btn.addEventListener("click", ()=>{
+        if(mLock) return;
+        if(card.matched || card.revealed) return;
+
+        card.revealed = true;
+        renderMemory();
+
+        if(mFirst === null){ mFirst = idx; return; }
+
+        mTries += 1;
+        $("mTries").textContent = mTries.toString();
+
+        const a = mDeck[mFirst];
+        const b = mDeck[idx];
+
+        if(a.value === b.value){
+          a.matched = true;
+          b.matched = true;
+          mMatched += 1;
+          $("mPairs").textContent = mMatched.toString();
+          $("mMsg").textContent = "💗";
+          mFirst = null;
           renderMemory();
 
-          if(mFirst === null){ mFirst = idx; return; }
-
-          mTries += 1;
-          $("mTries").textContent = mTries.toString();
-
-          const a = mDeck[mFirst];
-          const b = mDeck[idx];
-
-          if(a.value === b.value){
-            a.matched = true;
-            b.matched = true;
-            mMatched += 1;
-            $("mPairs").textContent = mMatched.toString();
-            $("mMsg").textContent = "💗";
-            mFirst = null;
-            renderMemory();
-
-            if(mMatched === emojis.length/2){
-              $("mMsg").textContent = "✓";
-              $("go3").disabled = false;
-              popConfetti();
-            }
-            return;
+          if(mMatched === emojis.length/2){
+            $("mMsg").textContent = "✓";
+            $("go3").disabled = false;
+            popConfetti();
           }
+          return;
+        }
 
-          mLock = true;
-          setTimeout(()=>{
-            a.revealed = false;
-            b.revealed = false;
-            mFirst = null;
-            mLock = false;
-            renderMemory();
-          }, 650);
-        });
-
-        wrap.appendChild(btn);
+        mLock = true;
+        setTimeout(()=>{
+          a.revealed = false;
+          b.revealed = false;
+          mFirst = null;
+          mLock = false;
+          renderMemory();
+        }, 650);
       });
-    }
 
-    function resetMemory(){
-      mDeck = shuffleArr(emojis).map(v=>({value:v, revealed:false, matched:false}));
-      mFirst = null;
-      mLock = false;
-      mMatched = 0;
-      mTries = 0;
-      $("mPairs").textContent = "0";
-      $("mTries").textContent = "0";
-      $("mMsg").textContent = "💗";
-      $("go3").disabled = true;
-      renderMemory();
-    }
+      wrap.appendChild(btn);
+    });
+  }
 
-    $("resetMemory").addEventListener("click", resetMemory);
-    resetMemory();
+  function resetMemory(){
+    mDeck = shuffleArr(emojis).map(v=>({value:v, revealed:false, matched:false}));
+    mFirst = null;
+    mLock = false;
+    mMatched = 0;
+    mTries = 0;
+    $("mPairs").textContent = "0";
+    $("mTries").textContent = "0";
+    $("mMsg").textContent = "💗";
+    $("go3").disabled = true;
+    renderMemory();
+  }
 
-    $("go3").addEventListener("click", ()=> show("s3"));
-    $("back2").addEventListener("click", ()=> show("s2"));
+  $("resetMemory").addEventListener("click", resetMemory);
+  resetMemory();
 
-    /* ===== CATCH ===== */
-    let cScore = 0;
-    let cRunning = false;
-    let cTimer = null;
-    let cEndAt = 0;
+  $("go3").addEventListener("click", ()=> show("s3"));
+  $("back2").addEventListener("click", ()=> show("s2"));
 
-    function updateCatchTime(){
-      const left = Math.max(0, Math.ceil((cEndAt - Date.now())/1000));
-      $("cTime").textContent = left + "s";
-      if(left <= 0) stopCatch(false);
-    }
+  /* ===== CATCH ===== */
+  let cScore = 0;
+  let cRunning = false;
+  let cTimer = null;
+  let cEndAt = 0;
 
-    function spawnHeart(){
+  function updateCatchTime(){
+    const left = Math.max(0, Math.ceil((cEndAt - Date.now())/1000));
+    $("cTime").textContent = left + "s";
+    if(left <= 0) stopCatch(false);
+  }
+
+  function spawnHeart(){
+    if(!cRunning) return;
+    const box = $("catchBox");
+    const h = document.createElement("div");
+    h.className = "heart";
+    h.textContent = Math.random() < 0.15 ? "💘" : "💗";
+    const x = 10 + Math.random()*80;
+    const y = 80 + Math.random()*15;
+    h.style.left = x + "%";
+    h.style.top  = y + "%";
+    const dur = 1.6 + Math.random()*1.4;
+    h.style.animationDuration = dur + "s";
+
+    h.addEventListener("click", ()=>{
       if(!cRunning) return;
-      const box = $("catchBox");
-      const h = document.createElement("div");
-      h.className = "heart";
-      h.textContent = Math.random() < 0.15 ? "💘" : "💗";
-      const x = 10 + Math.random()*80;
-      const y = 80 + Math.random()*15;
-      h.style.left = x + "%";
-      h.style.top  = y + "%";
-      const dur = 1.6 + Math.random()*1.4;
-      h.style.animationDuration = dur + "s";
-
-      h.addEventListener("click", ()=>{
-        if(!cRunning) return;
-        cScore += (h.textContent === "💘") ? 2 : 1;
-        $("cScore").textContent = Math.min(10, cScore).toString();
-        h.remove();
-        if(cScore >= 10) stopCatch(true);
-      });
-
-      box.appendChild(h);
-      setTimeout(()=>h.remove(), (dur*1000)+200);
-      setTimeout(spawnHeart, 320 + Math.random()*380);
-    }
-
-    function startCatch(){
-      if(cRunning) return;
-      cRunning = true;
-      cScore = 0;
-      $("cScore").textContent = "0";
-      $("go4").disabled = true;
-      $("cMsg").textContent = "💗";
-      $("catchBox").innerHTML = "";
-      cEndAt = Date.now() + 20000;
-      updateCatchTime();
-      cTimer = setInterval(updateCatchTime, 250);
-      spawnHeart();
-    }
-
-    function stopCatch(win){
-      if(!cRunning) return;
-      cRunning = false;
-      clearInterval(cTimer);
-      cTimer = null;
-
-      if(win){
-        $("cTime").textContent = "0s";
-        $("cMsg").textContent = "✓";
-        $("go4").disabled = false;
-        popConfetti();
-      }else{
-        $("cMsg").textContent = "💗";
-        $("go4").disabled = true;
-      }
-    }
-
-    $("startCatch").addEventListener("click", startCatch);
-    $("go4").addEventListener("click", ()=> show("s4"));
-    $("back3").addEventListener("click", ()=> show("s3"));
-
-    /* ===== QUIZ ===== */
-    const quiz = [
-      { id:1, text:"¿Cuál es mi color favorito?", opts:[["Rojo","rojo"],["Azul","azul"],["Negro","negro"]] },
-      { id:2, text:"¿Qué es lo que más me gusta hacer?", opts:[["Jugar","jugar"],["Programar","programar"],["Las dos","lasdos"]] },
-      { id:3, text:"¿Cuántos meses llevamos conociéndonos? (aprox.)", opts:[["6","6"],["7","7"],["8","8"]] }
-    ];
-    const correct = {1:"azul", 2:"lasdos", 3:"7"};
-    let answered = {1:null,2:null,3:null};
-    let score = 0;
-
-    function renderQuiz(){
-      $("q1").textContent = quiz[0].text;
-      $("q2").textContent = quiz[1].text;
-      $("q3").textContent = quiz[2].text;
-
-      const blocks = [
-        {wrap:$("q1opts"), q:1, opts:quiz[0].opts},
-        {wrap:$("q2opts"), q:2, opts:quiz[1].opts},
-        {wrap:$("q3opts"), q:3, opts:quiz[2].opts},
-      ];
-
-      blocks.forEach(({wrap,q,opts})=>{
-        wrap.innerHTML = "";
-        opts.forEach(([label,val])=>{
-          const b = document.createElement("button");
-          b.type="button";
-          b.className = "ghost";
-          b.textContent = label;
-          b.style.padding = "10px 12px";
-          b.style.borderRadius = "14px";
-          b.style.fontSize = "13px";
-          b.addEventListener("click", ()=>{
-            if(answered[q] !== null) return;
-            answered[q] = val;
-            if(val === correct[q]){
-              score += 1;
-              b.classList.remove("ghost");
-              b.classList.add("primary");
-            }else{
-              b.style.opacity = .7;
-            }
-            quizUpdate();
-          });
-          wrap.appendChild(b);
-        });
-      });
-    }
-
-    function quizUpdate(){
-      const done = [1,2,3].filter(q => answered[q] !== null).length;
-      $("qd").textContent = `${done}/3`;
-      $("qs").textContent = `${score}`;
-      $("go5").disabled = done !== 3;
-      if(done === 3) $("quizMsg").textContent = "✓";
-    }
-
-    $("resetQuiz").addEventListener("click", ()=>{
-      answered = {1:null,2:null,3:null};
-      score = 0;
-      $("quizMsg").textContent = "💗";
-      renderQuiz();
-      quizUpdate();
+      cScore += (h.textContent === "💘") ? 2 : 1;
+      $("cScore").textContent = Math.min(10, cScore).toString();
+      h.remove();
+      if(cScore >= 10) stopCatch(true);
     });
 
+    box.appendChild(h);
+    setTimeout(()=>h.remove(), (dur*1000)+200);
+    setTimeout(spawnHeart, 320 + Math.random()*380);
+  }
+
+  function startCatch(){
+    if(cRunning) return;
+    cRunning = true;
+    cScore = 0;
+    $("cScore").textContent = "0";
+    $("go4").disabled = true;
+    $("cMsg").textContent = "💗";
+    $("catchBox").innerHTML = "";
+    cEndAt = Date.now() + 20000;
+    updateCatchTime();
+    cTimer = setInterval(updateCatchTime, 250);
+    spawnHeart();
+  }
+
+  function stopCatch(win){
+    if(!cRunning) return;
+    cRunning = false;
+    clearInterval(cTimer);
+    cTimer = null;
+
+    if(win){
+      $("cTime").textContent = "0s";
+      $("cMsg").textContent = "✓";
+      $("go4").disabled = false;
+      popConfetti();
+    }else{
+      $("cMsg").textContent = "💗";
+      $("go4").disabled = true;
+    }
+  }
+
+  $("startCatch").addEventListener("click", startCatch);
+  $("go4").addEventListener("click", ()=> show("s4"));
+  $("back3").addEventListener("click", ()=> show("s3"));
+
+  /* ===== QUIZ ===== */
+  const quiz = [
+    { id:1, text:"¿Cuál es mi color favorito?", opts:[["Rojo","rojo"],["Azul","azul"],["Negro","negro"]] },
+    { id:2, text:"¿Qué es lo que más me gusta hacer?", opts:[["Jugar","jugar"],["Programar","programar"],["Las dos","lasdos"]] },
+    { id:3, text:"¿Cuántos meses llevamos conociéndonos? (aprox.)", opts:[["6","6"],["7","7"],["8","8"]] }
+  ];
+  const correct = {1:"azul", 2:"lasdos", 3:"7"};
+  let answered = {1:null,2:null,3:null};
+  let score = 0;
+
+  function renderQuiz(){
+    $("q1").textContent = quiz[0].text;
+    $("q2").textContent = quiz[1].text;
+    $("q3").textContent = quiz[2].text;
+
+    const blocks = [
+      {wrap:$("q1opts"), q:1, opts:quiz[0].opts},
+      {wrap:$("q2opts"), q:2, opts:quiz[1].opts},
+      {wrap:$("q3opts"), q:3, opts:quiz[2].opts},
+    ];
+
+    blocks.forEach(({wrap,q,opts})=>{
+      wrap.innerHTML = "";
+      opts.forEach(([label,val])=>{
+        const b = document.createElement("button");
+        b.type="button";
+        b.className = "ghost";
+        b.textContent = label;
+        b.style.padding = "10px 12px";
+        b.style.borderRadius = "14px";
+        b.style.fontSize = "13px";
+        b.addEventListener("click", ()=>{
+          if(answered[q] !== null) return;
+          answered[q] = val;
+          if(val === correct[q]){
+            score += 1;
+            b.classList.remove("ghost");
+            b.classList.add("primary");
+          }else{
+            b.style.opacity = .7;
+          }
+          quizUpdate();
+        });
+        wrap.appendChild(b);
+      });
+    });
+  }
+
+  function quizUpdate(){
+    const done = [1,2,3].filter(q => answered[q] !== null).length;
+    $("qd").textContent = `${done}/3`;
+    $("qs").textContent = `${score}`;
+    $("go5").disabled = done !== 3;
+    if(done === 3) $("quizMsg").textContent = "✓";
+  }
+
+  $("resetQuiz").addEventListener("click", ()=>{
+    answered = {1:null,2:null,3:null};
+    score = 0;
+    $("quizMsg").textContent = "💗";
     renderQuiz();
     quizUpdate();
+  });
 
-    $("go5").addEventListener("click", ()=> show("s5"));
+  renderQuiz();
+  quizUpdate();
 
-    /* ===== CONFETTI ===== */
-    const confetti = $("confetti");
-    function popConfetti(){
-      confetti.innerHTML="";
-      confetti.classList.add("show");
-      const colors = ["#ff4da6","#ff85c8","#ffd36a","#ffffff","#ffc2e6"];
-      const pieces = 140;
-      for(let i=0;i<pieces;i++){
-        const p = document.createElement("div");
-        p.className = "piece";
-        p.style.left = (Math.random()*100)+"vw";
-        p.style.top  = (-10 - Math.random()*30) + "vh";
-        p.style.width  = (6 + Math.random()*8) + "px";
-        p.style.height = (10 + Math.random()*18) + "px";
-        p.style.background = colors[Math.floor(Math.random()*colors.length)];
-        p.style.animationDuration = (2.6 + Math.random()*1.8) + "s";
-        p.style.animationDelay = (Math.random()*0.25) + "s";
-        confetti.appendChild(p);
-      }
-      setTimeout(()=> confetti.classList.remove("show"), 4200);
+  $("go5").addEventListener("click", ()=> show("s5"));
+
+  /* ===== CONFETTI ===== */
+  const confetti = $("confetti");
+  function popConfetti(){
+    confetti.innerHTML="";
+    confetti.classList.add("show");
+    const colors = ["#ff4da6","#ff85c8","#ffd36a","#ffffff","#ffc2e6"];
+    const pieces = 140;
+    for(let i=0;i<pieces;i++){
+      const p = document.createElement("div");
+      p.className = "piece";
+      p.style.left = (Math.random()*100)+"vw";
+      p.style.top  = (-10 - Math.random()*30) + "vh";
+      p.style.width  = (6 + Math.random()*8) + "px";
+      p.style.height = (10 + Math.random()*18) + "px";
+      p.style.background = colors[Math.floor(Math.random()*colors.length)];
+      p.style.animationDuration = (2.6 + Math.random()*1.8) + "s";
+      p.style.animationDelay = (Math.random()*0.25) + "s";
+      confetti.appendChild(p);
+    }
+    setTimeout(()=> confetti.classList.remove("show"), 4200);
+  }
+
+  /* ===== PIN -> PRESENTER ===== */
+  const pinModal = $("pinModal");
+  const pin = $("pin");
+  const pinMsg = $("pinMsg");
+  const audio = $("audio");
+
+  $("pinTitle").textContent = "💗";
+  $("pinSub").textContent = " ";
+
+  function openPin(){
+    pin.value = "";
+    pinMsg.textContent = "";
+    pinModal.classList.add("show");
+    setTimeout(()=> pin.focus(), 60);
+  }
+  function closePin(){ pinModal.classList.remove("show"); }
+
+  $("pinCancel").addEventListener("click", closePin);
+  pinModal.addEventListener("click",(e)=>{ if(e.target===pinModal) closePin(); });
+
+  $("finalContinue").addEventListener("click", openPin);
+
+  $("pinUnlock").addEventListener("click", async ()=>{
+    const v = (pin.value || "").trim();
+    if(v !== PIN_REVELAR){
+      pinMsg.textContent = " ";
+      return;
     }
 
-    /* ===== PIN -> PRESENTER ===== */
-    const pinModal = $("pinModal");
-    const pin = $("pin");
-    const pinMsg = $("pinMsg");
-    const audio = $("audio");
+    try{
+      audio.currentTime = 0;
+      audio.volume = 0.68;
+      await audio.play();
+    }catch(e){}
 
-    $("pinTitle").textContent = "💗";
-    $("pinSub").textContent = " ";
+    closePin();
+    openPresenter();
+  });
 
-    function openPin(){
-      pin.value = "";
-      pinMsg.textContent = "";
-      pinModal.classList.add("show");
-      setTimeout(()=> pin.focus(), 60);
+  /* ===== PRESENTER ===== */
+  const presenter = $("presenter");
+  const heartsFx = $("heartsFx");
+  const wipe = $("wipe");
+  const pHeadline = $("pHeadline");
+  const pBody = $("pBody");
+  const pPillLeft = $("pPillLeft");
+  const pPillRight = $("pPillRight");
+  const proposalBox = $("proposalBox");
+  const proposalQ = $("proposalQ");
+  const proposalSub = $("proposalSub");
+  const proposalYes = $("proposalYes");
+  const proposalNo = $("proposalNo");
+  const pControls = $("pControls");
+
+  const slides = [
+    {
+      head: `Hola, ${NOMBRE_DE_ELLA}`,
+      body: `No sé en qué momento pasó...\npero me empecé a sentir más tranquilo cuando estás.\n\nMe gusta tu forma.\nMe gusta tu esencia.\nMe gusta tu presencia.`,
+      pillL: "💗",
+      pillR: "—",
+      isQuestion: false
+    },
+    {
+      head: `Me quedo con`,
+      body: `Tus detalles.\nTu voz.\nTu manera de ver el mundo.\n\nY esa sensación bonita de que...\ncontigo, todo es más suave.`,
+      pillL: "✨",
+      pillR: "—",
+      isQuestion: false
+    },
+    {
+      head: `Quiero decirte`,
+      body: `Que te elijo.\nSin prisa.\nSin ruido.\n\nPero con intención.\nCon cariño.\nCon verdad.`,
+      pillL: "🌙",
+      pillR: "—",
+      isQuestion: false
+    },
+    {
+      head: `Entonces...`,
+      body: `¿Quieres ser mi novia?`,
+      pillL: "💘",
+      pillR: "—",
+      isQuestion: true
     }
-    function closePin(){ pinModal.classList.remove("show"); }
+  ];
 
-    $("pinCancel").addEventListener("click", closePin);
-    pinModal.addEventListener("click",(e)=>{ if(e.target===pinModal) closePin(); });
+  let sIdx = 0;
+  let typing = null;
 
-    $("finalContinue").addEventListener("click", openPin);
+  function clearTyping(){ if(typing){ clearInterval(typing); typing = null; } }
 
-    $("pinUnlock").addEventListener("click", async ()=>{
-      const v = (pin.value || "").trim();
-      if(v !== PIN_REVELAR){
-        pinMsg.textContent = " ";
-        return;
-      }
+  function runWipe(){
+    wipe.classList.remove("run");
+    void wipe.offsetWidth;
+    wipe.classList.add("run");
+    setTimeout(()=> wipe.classList.remove("run"), 900);
+  }
 
-      try{
-        audio.currentTime = 0;
-        audio.volume = 0.68;
-        await audio.play();
-      }catch(e){}
-
-      closePin();
-      openPresenter();
-    });
-
-    /* ===== PRESENTER ===== */
-    const presenter = $("presenter");
-    const heartsFx = $("heartsFx");
-    const wipe = $("wipe");
-    const pHeadline = $("pHeadline");
-    const pBody = $("pBody");
-    const pPillLeft = $("pPillLeft");
-    const pPillRight = $("pPillRight");
-
-    const slides = [
-      {
-        head: `Hola, ${NOMBRE_DE_ELLA}`,
-        body: `No sé en qué momento pasó...\npero me empecé a sentir más tranquilo cuando estás.\n\nMe gusta tu forma.\nMe gusta tu esencia.\nMe gusta tu presencia.`,
-        pillL: "💗",
-        pillR: "—"
-      },
-      {
-        head: `Me quedo con`,
-        body: `Tus detalles.\nTu voz.\nTu manera de ver el mundo.\n\nY esa sensación bonita de que...\ncontigo, todo es más suave.`,
-        pillL: "✨",
-        pillR: "—"
-      },
-      {
-        head: `Quiero decirte`,
-        body: `Que te elijo.\nSin prisa.\nSin ruido.\n\nPero con intención.\nCon cariño.\nCon verdad.`,
-        pillL: "🌙",
-        pillR: "—"
-      },
-      {
-        head: `Entonces...`,
-        body: `¿Quieres ser mi novia?`,
-        pillL: "💘",
-        pillR: "—"
-      }
-    ];
-
-    let sIdx = 0;
-    let typing = null;
-
-    function clearTyping(){ if(typing){ clearInterval(typing); typing = null; } }
-
-    function runWipe(){
-      wipe.classList.remove("run");
-      void wipe.offsetWidth;
-      wipe.classList.add("run");
-      setTimeout(()=> wipe.classList.remove("run"), 900);
+  function spawnHeartsBurst(){
+    const symbols = ["💗","💘","✨","🌙","🌹","🧸"];
+    const count = 22;
+    for(let i=0;i<count;i++){
+      const el = document.createElement("div");
+      el.className = "hx";
+      el.textContent = symbols[Math.floor(Math.random()*symbols.length)];
+      el.style.left = (Math.random()*100) + "vw";
+      el.style.bottom = (-10 - Math.random()*20) + "px";
+      el.style.fontSize = (16 + Math.random()*18) + "px";
+      el.style.animationDuration = (2.8 + Math.random()*2.2) + "s";
+      el.style.animationDelay = (Math.random()*0.2) + "s";
+      heartsFx.appendChild(el);
+      setTimeout(()=> el.remove(), 5200);
     }
+  }
 
-    function spawnHeartsBurst(){
-      const symbols = ["💗","💘","✨","🌙","🌹","🧸"];
-      const count = 22;
-      for(let i=0;i<count;i++){
-        const el = document.createElement("div");
-        el.className = "hx";
-        el.textContent = symbols[Math.floor(Math.random()*symbols.length)];
-        el.style.left = (Math.random()*100) + "vw";
-        el.style.bottom = (-10 - Math.random()*20) + "px";
-        el.style.fontSize = (16 + Math.random()*18) + "px";
-        el.style.animationDuration = (2.8 + Math.random()*2.2) + "s";
-        el.style.animationDelay = (Math.random()*0.2) + "s";
-        heartsFx.appendChild(el);
-        setTimeout(()=> el.remove(), 5200);
+  // speed MÁS ALTO = MÁS LENTO
+  function typeText(el, text, speed=70, onDone=null){
+    clearTyping();
+    el.textContent = "";
+    el.classList.add("typeCursor");
+    let i = 0;
+    typing = setInterval(()=>{
+      i++;
+      el.textContent = text.slice(0,i);
+      if(i >= text.length){
+        clearTyping();
+        el.classList.remove("typeCursor");
+        if(typeof onDone === "function") onDone();
       }
-    }
+    }, speed);
+  }
 
-    function typeText(el, text, speed=70){
-      clearTyping();
-      el.textContent = "";
-      el.classList.add("typeCursor");
-      let i = 0;
+  // ✅ palabra por palabra, súper lento
+  function typeChunks(el, chunks, charSpeed=240, gapMs=1200, onDone=null){
+    clearTyping();
+    el.textContent = "";
+    el.classList.add("typeCursor");
+
+    let chunkIndex = 0;
+    let charIndex = 0;
+
+    function startChunk(){
+      const current = chunks[chunkIndex] ?? "";
       typing = setInterval(()=>{
-        i++;
-        el.textContent = text.slice(0,i);
-        if(i >= text.length){
+        charIndex++;
+        const before = chunks.slice(0, chunkIndex).join(" ");
+        const prefix = (chunkIndex > 0 ? before + " " : "");
+        el.textContent = prefix + current.slice(0, charIndex);
+
+        if(charIndex >= current.length){
           clearTyping();
           el.classList.remove("typeCursor");
+          setTimeout(()=>{
+            chunkIndex++;
+            charIndex = 0;
+            if(chunkIndex >= chunks.length){
+              if(typeof onDone === "function") onDone();
+              return;
+            }
+            el.classList.add("typeCursor");
+            startChunk();
+          }, gapMs);
         }
-      }, speed);
+      }, charSpeed);
     }
 
-    function renderSlide(index){
-      sIdx = Math.max(0, Math.min(slides.length-1, index));
-      const s = slides[sIdx];
+    startChunk();
+  }
 
-      runWipe();
-      spawnHeartsBurst();
+  function setProposalVisible(show){
+    proposalBox.classList.toggle("show", !!show);
+  }
 
-      pPillLeft.textContent = s.pillL;
-      pPillRight.textContent = s.pillR;
+  function renderSlide(index){
+    sIdx = Math.max(0, Math.min(slides.length-1, index));
+    const s = slides[sIdx];
 
-      pHeadline.textContent = s.head;
+    runWipe();
+    spawnHeartsBurst();
+
+    pPillLeft.textContent = s.pillL;
+    pPillRight.textContent = s.pillR;
+    pHeadline.textContent = s.head;
+
+    setProposalVisible(false);
+
+    $("pPrev").disabled = sIdx === 0;
+    $("pNext").disabled = false;
+
+    if(!s.isQuestion){
+      pControls.style.display = "flex";
+      proposalQ.textContent = "";
+      proposalSub.textContent = " ";
       typeText(pBody, s.body, 70);
-
-      $("pPrev").disabled = sIdx === 0;
-      $("pNext").textContent = (sIdx === slides.length-1) ? "Listo" : "▶";
+      return;
     }
 
-    function openPresenter(){
-      presenter.classList.add("show");
-      presenter.setAttribute("aria-hidden","false");
+    // ✅ FINAL: “¿Quieres” -> “ser” -> “mi” -> “novia?” súper lento
+    pControls.style.display = "none";
+    pBody.textContent = "";
+    proposalQ.textContent = "";
+    proposalSub.textContent = " ";
+
+    const chunks = ["¿Quieres", "ser", "mi", "novia?"];
+    const CHAR_SPEED = 260;  // más alto = más lento
+    const GAP_MS = 1500;     // pausa entre palabras
+
+    typeChunks(proposalQ, chunks, CHAR_SPEED, GAP_MS, ()=>{
+      proposalSub.textContent = `Respóndeme aquí, ${NOMBRE_DE_ELLA}.`;
+      setProposalVisible(true);
       popConfetti();
-      renderSlide(0);
-    }
-
-    function closePresenter(){
-      presenter.classList.remove("show");
-      presenter.setAttribute("aria-hidden","true");
-      clearTyping();
-      heartsFx.innerHTML = "";
-      showProposalToast();
-    }
-
-    $("pPrev").addEventListener("click", ()=> renderSlide(sIdx-1));
-    $("pNext").addEventListener("click", ()=>{
-      if(sIdx === slides.length-1) closePresenter();
-      else renderSlide(sIdx+1);
+      setTimeout(popConfetti, 650);
     });
-    $("pExit").addEventListener("click", ()=>{
-      presenter.classList.remove("show");
-      presenter.setAttribute("aria-hidden","true");
-      clearTyping();
-      heartsFx.innerHTML = "";
-    });
+  }
 
-    let touchX = null;
-    presenter.addEventListener("touchstart",(e)=>{ touchX = e.touches?.[0]?.clientX ?? null; }, {passive:true});
-    presenter.addEventListener("touchend",(e)=>{
-      if(touchX === null) return;
-      const endX = e.changedTouches?.[0]?.clientX ?? touchX;
-      const dx = endX - touchX;
-      touchX = null;
-      if(Math.abs(dx) < 40) return;
-      if(dx < 0) $("pNext").click();
-      if(dx > 0) $("pPrev").click();
-    });
+  function openPresenter(){
+    presenter.classList.add("show");
+    presenter.setAttribute("aria-hidden","false");
+    popConfetti();
+    renderSlide(0);
+  }
 
-    /* ===== Toast proposal ===== */
-    const toast = $("toast");
-    function showProposalToast(){
-      $("toastTitle").textContent = NOMBRE_DE_ELLA + " 💗";
-      $("toastBody").textContent = "¿Quieres ser mi novia?";
-      $("btnNo").textContent = "No";
-      $("btnYes").textContent = "Sí";
-      $("btnNo").onclick = onNo;
-      $("btnYes").onclick = onYes;
-      toast.classList.add("show");
-      popConfetti();
-    }
+  function closePresenterOnly(){
+    presenter.classList.remove("show");
+    presenter.setAttribute("aria-hidden","true");
+    clearTyping();
+    heartsFx.innerHTML = "";
+    setProposalVisible(false);
+    pControls.style.display = "flex";
+  }
 
-    $("toastClose").addEventListener("click", ()=> toast.classList.remove("show"));
+  $("pPrev").addEventListener("click", ()=> renderSlide(sIdx-1));
+  $("pNext").addEventListener("click", ()=>{
+    if(slides[sIdx]?.isQuestion) return;
+    renderSlide(sIdx+1);
+  });
+  $("pExit").addEventListener("click", closePresenterOnly);
 
-    function onYes(){
-      toast.classList.remove("show");
-      popConfetti();
-      openResult("💗", `Entonces queda oficial.\n\n— ${TU_NOMBRE}`);
-    }
+  let touchX = null;
+  presenter.addEventListener("touchstart",(e)=>{ touchX = e.touches?.[0]?.clientX ?? null; }, {passive:true});
+  presenter.addEventListener("touchend",(e)=>{
+    if(touchX === null) return;
+    if(slides[sIdx]?.isQuestion) { touchX=null; return; }
+    const endX = e.changedTouches?.[0]?.clientX ?? touchX;
+    const dx = endX - touchX;
+    touchX = null;
+    if(Math.abs(dx) < 40) return;
+    if(dx < 0) renderSlide(sIdx+1);
+    if(dx > 0) renderSlide(sIdx-1);
+  });
 
-    function onNo(){
-      popConfetti();
-      $("toastBody").textContent = "¿Segura? 💗";
-      $("btnNo").textContent = "Segura";
-      $("btnYes").textContent = "No segura";
-      $("btnNo").onclick = ()=> {
-        toast.classList.remove("show");
-        openResult("💗", `Te entiendo.\n\nIgual quería decírtelo bonito.\n\n— ${TU_NOMBRE}`);
-      };
-      $("btnYes").onclick = ()=> {
-        toast.classList.remove("show");
-        popConfetti();
-        openResult("💗", `Entonces sí 💗\n\n— ${TU_NOMBRE}`);
-      };
-    }
+  // ✅ Sí / No dentro del presenter + confetti
+  proposalYes.addEventListener("click", ()=>{
+    popConfetti();
+    setTimeout(popConfetti, 500);
+    closePresenterOnly();
+    openResult("💗", `Entonces queda oficial.\n\n— ${TU_NOMBRE}`);
+  });
 
-    /* ===== Result modal ===== */
-    const res = $("resultModal");
-    $("closeRes").addEventListener("click", ()=> res.classList.remove("show"));
-    res.addEventListener("click", (e)=>{ if(e.target===res) res.classList.remove("show"); });
+  proposalNo.addEventListener("click", ()=>{
+    popConfetti();
+    closePresenterOnly();
+    openResult("💗", `Te entiendo.\n\nIgual quería decírtelo bonito.\n\n— ${TU_NOMBRE}`);
+  });
 
-    function openResult(title, body){
-      $("resTitle").textContent = title;
-      $("resBody").textContent = body;
-      res.classList.add("show");
-    }
-  </script>
+  /* ===== Result modal ===== */
+  const res = $("resultModal");
+  $("closeRes").addEventListener("click", ()=> res.classList.remove("show"));
+  res.addEventListener("click", (e)=>{ if(e.target===res) res.classList.remove("show"); });
+
+  function openResult(title, body){
+    $("resTitle").textContent = title;
+    $("resBody").textContent = body;
+    res.classList.add("show");
+  }
+</script>
+
 </body>
 </html>

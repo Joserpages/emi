@@ -345,7 +345,7 @@
       display:none; place-items:center;
       padding:16px;
       background: rgba(0,0,0,.35);
-      z-index:10;
+      z-index:30;
     }
     .modal.show{display:grid}
     .modalCard{
@@ -369,7 +369,7 @@
       font-size:14px;
     }
 
-    .confetti{position:fixed; inset:0; pointer-events:none; overflow:hidden; z-index:9; display:none}
+    .confetti{position:fixed; inset:0; pointer-events:none; overflow:hidden; z-index:25; display:none}
     .confetti.show{display:block}
     .piece{position:absolute; width:10px; height:16px; opacity:.95; border-radius:3px; animation: fall linear forwards}
     @keyframes fall{from{transform: translateY(-10vh) rotate(0deg)} to{transform: translateY(110vh) rotate(760deg)}}
@@ -758,6 +758,76 @@
       </div>
     </div>
   </section>
+
+  <!-- Result -->
+  <div class="modal" id="resultModal">
+    <div class="modalCard">
+      <h3 id="resTitle">—</h3>
+      <p id="resBody">—</p>
+      <div class="btns" style="justify-content:flex-end">
+        <button class="primary" id="closeRes" type="button">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contrato de novios -->
+  <div class="modal" id="contractModal">
+    <div class="modalCard">
+      <h3 id="cTitle">Contrato de Novios 💗</h3>
+      <p id="cSub" style="margin-bottom:10px">Completemos esto bonito y oficial.</p>
+
+      <div style="display:grid; gap:10px">
+        <label class="mini" style="font-weight:900">Nombre de ella</label>
+        <input class="input" id="cHer" placeholder="Ej: Emi" />
+
+        <label class="mini" style="font-weight:900">Tu nombre</label>
+        <input class="input" id="cHim" placeholder="Ej: Jose" />
+
+        <label class="mini" style="font-weight:900">Fecha</label>
+        <input class="input" id="cDate" type="date" />
+
+        <div class="quote" style="margin-top:6px">
+          <b style="display:block; margin-bottom:8px">Cláusulas</b>
+          <label style="display:flex; gap:10px; align-items:flex-start; margin:8px 0; cursor:pointer">
+            <input id="cl1" type="checkbox" style="margin-top:3px" />
+            <span>Prometemos cuidarnos, respetarnos y hablar con honestidad.</span>
+          </label>
+          <label style="display:flex; gap:10px; align-items:flex-start; margin:8px 0; cursor:pointer">
+            <input id="cl2" type="checkbox" style="margin-top:3px" />
+            <span>Nos elegimos con intención: con cariño, paciencia y lealtad.</span>
+          </label>
+          <label style="display:flex; gap:10px; align-items:flex-start; margin:8px 0; cursor:pointer">
+            <input id="cl3" type="checkbox" style="margin-top:3px" />
+            <span>Vamos a construir momentos bonitos y apoyarnos en lo difícil.</span>
+          </label>
+          <label style="display:flex; gap:10px; align-items:flex-start; margin:8px 0; cursor:pointer">
+            <input id="cl4" type="checkbox" style="margin-top:3px" />
+            <span>Este contrato se firma con amor (y con muchas ganas).</span>
+          </label>
+        </div>
+
+        <label class="mini" style="font-weight:900">Firma de ella (escrita)</label>
+        <input class="input" id="cSignHer" placeholder="Firma de ella" />
+
+        <label class="mini" style="font-weight:900">Tu firma (escrita)</label>
+        <input class="input" id="cSignHim" placeholder="Tu firma" />
+
+        <label style="display:flex; gap:10px; align-items:flex-start; margin-top:4px; cursor:pointer" class="mini">
+          <input id="cAgree" type="checkbox" style="margin-top:3px" />
+          <span>Acepto este contrato y confirmo que lo firmo con amor 💗</span>
+        </label>
+
+        <p class="mini" id="cMsg" style="margin:2px 0 0"></p>
+
+        <div class="btns" style="justify-content:flex-end">
+          <button class="ghost" id="cClose" type="button">Cerrar</button>
+          <button class="ghost" id="cDownloadTxt" type="button">Descargar TXT</button>
+          <button class="primary" id="cDownload" type="button">Descargar Contrato</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 <script>
   const NOMBRE_DE_ELLA = "mi Emi Hermosa";
   const TU_NOMBRE      = "JOSE";
@@ -1323,7 +1393,6 @@
     }
   }
 
-  // speed MÁS ALTO = MÁS LENTO
   function typeText(el, text, speed=70, onDone=null){
     clearTyping();
     el.textContent = "";
@@ -1340,7 +1409,6 @@
     }, speed);
   }
 
-  // ✅ palabra por palabra, súper lento
   function typeChunks(el, chunks, charSpeed=240, gapMs=1200, onDone=null){
     clearTyping();
     el.textContent = "";
@@ -1405,15 +1473,14 @@
       return;
     }
 
-    // ✅ FINAL: “¿Quieres” -> “ser” -> “mi” -> “novia?” súper lento
     pControls.style.display = "none";
     pBody.textContent = "";
     proposalQ.textContent = "";
     proposalSub.textContent = " ";
 
     const chunks = ["¿Quieres", "ser", "mi", "novia?"];
-    const CHAR_SPEED = 260;  // más alto = más lento
-    const GAP_MS = 1500;     // pausa entre palabras
+    const CHAR_SPEED = 260;
+    const GAP_MS = 1500;
 
     typeChunks(proposalQ, chunks, CHAR_SPEED, GAP_MS, ()=>{
       proposalSub.textContent = `Respóndeme aquí, ${NOMBRE_DE_ELLA}.`;
@@ -1459,20 +1526,6 @@
     if(dx > 0) renderSlide(sIdx-1);
   });
 
-  // ✅ Sí / No dentro del presenter + confetti
-  proposalYes.addEventListener("click", ()=>{
-    popConfetti();
-    setTimeout(popConfetti, 500);
-    closePresenterOnly();
-    openResult("💗", `Entonces queda oficial.\n\n— ${TU_NOMBRE}`);
-  });
-
-  proposalNo.addEventListener("click", ()=>{
-    popConfetti();
-    closePresenterOnly();
-    openResult("💗", `Te entiendo.\n\nIgual quería decírtelo bonito.\n\n— ${TU_NOMBRE}`);
-  });
-
   /* ===== Result modal ===== */
   const res = $("resultModal");
   $("closeRes").addEventListener("click", ()=> res.classList.remove("show"));
@@ -1483,6 +1536,255 @@
     $("resBody").textContent = body;
     res.classList.add("show");
   }
+
+  /* ===== CONTRATO (Modal + Descarga) ===== */
+  const contractModal = $("contractModal");
+  const cHer = $("cHer");
+  const cHim = $("cHim");
+  const cDate = $("cDate");
+  const cSignHer = $("cSignHer");
+  const cSignHim = $("cSignHim");
+  const cAgree = $("cAgree");
+  const cMsg = $("cMsg");
+
+  cHer.value = NOMBRE_DE_ELLA;
+  cHim.value = TU_NOMBRE;
+
+  (function setToday(){
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth()+1).padStart(2,"0");
+    const dd = String(d.getDate()).padStart(2,"0");
+    cDate.value = `${yyyy}-${mm}-${dd}`;
+  })();
+
+  function openContract(){
+    cMsg.textContent = " ";
+    cMsg.style.color = "#6f5160";
+    popConfetti();
+    setTimeout(popConfetti, 650);
+    contractModal.classList.add("show");
+    setTimeout(()=> cHer.focus(), 80);
+  }
+
+  function closeContract(){
+    contractModal.classList.remove("show");
+  }
+
+  $("cClose").addEventListener("click", closeContract);
+  contractModal.addEventListener("click", (e)=>{ if(e.target === contractModal) closeContract(); });
+
+  function clausesText(){
+    const checks = [
+      {id:"cl1", text:"Prometemos cuidarnos, respetarnos y hablar con honestidad."},
+      {id:"cl2", text:"Nos elegimos con intención: con cariño, paciencia y lealtad."},
+      {id:"cl3", text:"Vamos a construir momentos bonitos y apoyarnos en lo difícil."},
+      {id:"cl4", text:"Este contrato se firma con amor (y con muchas ganas)."},
+    ];
+    const selected = checks.filter(c => $(c.id).checked).map(c => "• " + c.text);
+    return selected.length ? selected.join("\n") : "• (Cláusulas no marcadas)";
+  }
+
+  function validateContract(){
+    const her = (cHer.value || "").trim();
+    const him = (cHim.value || "").trim();
+    const date = (cDate.value || "").trim();
+    const sh = (cSignHer.value || "").trim();
+    const sm = (cSignHim.value || "").trim();
+
+    if(!her || !him || !date || !sh || !sm){
+      cMsg.textContent = "Completa nombres, fecha y firmas.";
+      cMsg.style.color = "#8f6f7f";
+      return false;
+    }
+    if(!cAgree.checked){
+      cMsg.textContent = "Marca la casilla de aceptación 💗";
+      cMsg.style.color = "#8f6f7f";
+      return false;
+    }
+    cMsg.textContent = "Listo 💗 Ya lo podés descargar.";
+    cMsg.style.color = "#6f5160";
+    return true;
+  }
+
+  function buildContractHTML(){
+    const her = (cHer.value || "").trim();
+    const him = (cHim.value || "").trim();
+    const date = (cDate.value || "").trim();
+    const sh = (cSignHer.value || "").trim();
+    const sm = (cSignHim.value || "").trim();
+
+    const clauses = clausesText();
+
+    const prettyDate = (() => {
+      const [y,m,d] = date.split("-");
+      return `${d}/${m}/${y}`;
+    })();
+
+    return `<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Contrato de Novios 💗</title>
+<style>
+  :root{
+    --bg:#fff5fb; --card:#fff; --stroke:#ffd6ec; --text:#3a2a33; --muted:#6f5160;
+    --pink:#ff4da6; --pink2:#ff85c8;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family: ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+    color:var(--text);
+    background:
+      radial-gradient(900px 600px at 18% 8%, #ffe6f4, transparent 60%),
+      radial-gradient(900px 600px at 85% 92%, #ffd6ec, transparent 60%),
+      linear-gradient(180deg, #ffffff, var(--bg));
+    padding:22px 14px;
+  }
+  .card{
+    max-width:820px; margin:0 auto;
+    border:1px solid var(--stroke);
+    border-radius:22px;
+    background:rgba(255,255,255,.95);
+    box-shadow: 0 20px 60px rgba(255,105,180,.15);
+    padding:18px;
+  }
+  h1{margin:0 0 10px; font-size:26px; letter-spacing:-.4px}
+  .sub{margin:0 0 14px; color:var(--muted); line-height:1.6}
+  .pill{
+    display:inline-block; padding:8px 10px; border-radius:999px;
+    border:1px solid var(--stroke); background:#fff7fc; color:var(--muted);
+    font-weight:800; font-size:12px;
+  }
+  .box{
+    margin-top:14px;
+    border-radius:18px;
+    border:1px dashed var(--stroke);
+    background:#fffafd;
+    padding:14px;
+    white-space:pre-wrap;
+    line-height:1.75;
+    color:var(--muted);
+  }
+  .row{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px}
+  .sig{
+    flex:1; min-width:220px;
+    border-radius:18px;
+    border:1px solid var(--stroke);
+    background:#fff;
+    padding:12px;
+  }
+  .k{font-size:12px; color:var(--muted); margin-bottom:6px}
+  .v{font-size:18px; font-weight:900}
+  .footer{margin-top:14px; font-size:12px; color:var(--muted)}
+  .spark{
+    background: linear-gradient(90deg, var(--pink), var(--pink2));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    font-weight:900;
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <span class="pill">Contrato de Novios 💗</span>
+    <h1>Entre <span class="spark">${her}</span> y <span class="spark">${him}</span></h1>
+    <p class="sub">Firmado el ${prettyDate}. Este contrato es simbólico y lleno de cariño. 💗</p>
+
+    <div class="box">
+<b>Cláusulas:</b>
+${clauses}
+
+<b>Acuerdo:</b>
+Desde hoy, ambos aceptan elegirse y cuidarse con respeto, detalles y amor.
+    </div>
+
+    <div class="row">
+      <div class="sig">
+        <div class="k">Firma de ella</div>
+        <div class="v">${sh}</div>
+      </div>
+      <div class="sig">
+        <div class="k">Firma de él</div>
+        <div class="v">${sm}</div>
+      </div>
+    </div>
+
+    <div class="footer">
+      Consejo: si quieren guardarlo como PDF, abran este archivo en Chrome y usen “Imprimir” → “Guardar como PDF”.
+    </div>
+  </div>
+</body>
+</html>`;
+  }
+
+  function buildContractTXT(){
+    const her = (cHer.value || "").trim();
+    const him = (cHim.value || "").trim();
+    const date = (cDate.value || "").trim();
+    const sh = (cSignHer.value || "").trim();
+    const sm = (cSignHim.value || "").trim();
+    const clauses = clausesText();
+
+    return `CONTRATO DE NOVIOS 💗
+
+Entre: ${her} y ${him}
+Fecha: ${date}
+
+CLÁUSULAS:
+${clauses}
+
+ACUERDO:
+Desde hoy, ambos aceptan elegirse y cuidarse con respeto, detalles y amor.
+
+FIRMAS:
+Ella: ${sh}
+Él: ${sm}`;
+  }
+
+  function downloadFile(filename, content, mime){
+    const blob = new Blob([content], {type: mime});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=> URL.revokeObjectURL(url), 800);
+  }
+
+  $("cDownload").addEventListener("click", ()=>{
+    if(!validateContract()) return;
+    const html = buildContractHTML();
+    const safeHer = (cHer.value || "ella").trim().replace(/\s+/g,"_");
+    const safeHim = (cHim.value || "el").trim().replace(/\s+/g,"_");
+    downloadFile(`Contrato_${safeHer}_${safeHim}.html`, html, "text/html;charset=utf-8");
+    popConfetti();
+  });
+
+  $("cDownloadTxt").addEventListener("click", ()=>{
+    if(!validateContract()) return;
+    const txt = buildContractTXT();
+    const safeHer = (cHer.value || "ella").trim().replace(/\s+/g,"_");
+    const safeHim = (cHim.value || "el").trim().replace(/\s+/g,"_");
+    downloadFile(`Contrato_${safeHer}_${safeHim}.txt`, txt, "text/plain;charset=utf-8");
+    popConfetti();
+  });
+
+  /* ===== Botones Sí / No ===== */
+  proposalYes.addEventListener("click", ()=>{
+    popConfetti();
+    setTimeout(popConfetti, 500);
+    closePresenterOnly();
+    openContract(); // ✅ abre contrato al decir “Sí”
+  });
+
+  proposalNo.addEventListener("click", ()=>{
+    popConfetti();
+    closePresenterOnly();
+    openResult("💗", `Te entiendo.\n\nIgual quería decírtelo bonito.\n\n— ${TU_NOMBRE}`);
+  });
 </script>
 
 </body>
